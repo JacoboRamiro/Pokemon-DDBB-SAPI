@@ -1,0 +1,11 @@
+{
+  "sampleData": {
+    "fafbe22f-3e63-4a43-930e-5b765193d9c4": {
+      "vars-mov1": "sample_data/defaultnumbertype.dwl",
+      "vars-mov2": "sample_data/defaultnumbertype_1.dwl",
+      "vars-mov": "sample_data/defaultvoidtype.dwl",
+      "vars-mov3": "sample_data/defaultnumbertype_2.dwl",
+      "vars-mov4": "sample_data/defaultnumbertype_3.dwl"
+    }
+  }
+}

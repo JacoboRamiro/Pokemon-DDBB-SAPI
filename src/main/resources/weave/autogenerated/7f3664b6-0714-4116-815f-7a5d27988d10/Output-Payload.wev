@@ -1,0 +1,4 @@
+%dw 2.0
+
+type auto_7f3664b6_0714_4116_815f_7a5d27988d10_Output_Payload = Array<{|  ID: Number,   nombre: Any,   tipo1: Any,   tipo2?: Any,   gen?: Number|}>
+

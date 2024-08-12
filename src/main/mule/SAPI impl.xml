@@ -1,0 +1,782 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:american-flights-api="http://www.mulesoft.org/schema/mule/american-flights-api" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking"
+	xmlns:validation="http://www.mulesoft.org/schema/mule/validation"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
+http://www.mulesoft.org/schema/mule/american-flights-api http://www.mulesoft.org/schema/mule/american-flights-api/current/mule-american-flights-api.xsd">
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="81cb809e-c5ce-489b-8bee-5d54a5faacc5" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="sasa" database="pokemon" />
+	</db:config>
+	<validation:config name="Validation_Config" doc:name="Validation Config" doc:id="c004ecea-6aa4-44ef-b9c9-bb6116e586b1"/>
+	<flow name="get:\pokemon" doc:id="0de5c75e-06aa-4ca2-9de1-66de4fd0255b" >
+		<db:select doc:name="Select" doc:id="f30d169f-c284-44ef-8ac5-4e8c094797dc" config-ref="Database_Config">
+			<error-mapping sourceType="DB:CONNECTIVITY" targetType="ERROR:DDBB_CAIDA" />
+			<db:sql><![CDATA[SELECT * 
+FROM pokemon.bbdd ]]></db:sql>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="0876f23d-4e34-4723-8938-2d5f59da38b8" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="5a8f4c7e-6247-46f3-83ba-e1cf4b7d40da" type="ERROR:DDBB_CAIDA">
+				<set-payload value="La Pokedex no está disponible" doc:name="Set Payload" doc:id="7a981922-bb3f-4e25-a668-576588f358c0" />
+			</on-error-propagate>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="9d1eec30-d986-4b3c-94e2-264c7826e697" type="ERROR:SINTAXIS">
+				<set-payload value="Error de sintaxis SQL" doc:name="Set Payload" doc:id="0660effc-3b91-403e-af3b-465c457bb34d" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="get:\pokemon\(ID)" doc:id="706c32f1-339d-4824-854a-3e5c4d0b2921" >
+		<db:select doc:name="Select" doc:id="735ff67f-03c2-4957-b66d-d1a71a7cc560" config-ref="Database_Config">
+			<db:sql ><![CDATA[SELECT * 
+FROM pokemon.bbdd 
+WHERE ID = :ID]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{'ID' : attributes.uriParams.ID}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="595435e0-bf42-49ce-bae7-e1159f3d4bdd" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="19683620-4626-44d8-9add-aee9037f6ea3" type="ERROR:DDBB_CAIDA" >
+				<set-payload value="La Pokedex no está disponible" doc:name="Set Payload" doc:id="e3d84280-f0f6-459b-9443-f502374ed565" />
+			</on-error-propagate>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate1" doc:id="b49ac46e-2224-445a-92dc-1ed0d1f5048f" type="ERROR:SINTAXIS" >
+				<set-payload value="Error de sintaxis SQL" doc:name="Set Payload" doc:id="fc866446-0b4b-409c-83e3-ab61cc45685b" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="get:\pokemon\(generacion)" doc:id="c6d77a7d-b4b7-4317-84d0-fd53789176e0" >
+		<db:select doc:name="Select" doc:id="b989f5a4-31cc-43a6-939f-001955dd6e1c" config-ref="Database_Config">
+			<error-mapping sourceType="DB:CONNECTIVITY" targetType="ERROR:DDBB_CAIDA" />
+			<error-mapping sourceType="DB:BAD_SQL_SYNTAX" targetType="ERROR:SINTAXIS" />
+			<db:sql ><![CDATA[SELECT * 
+FROM pokemon.bbdd 
+WHERE gen = :gen]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{'gen': attributes.queryParams.gen}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="3112cc99-e8c8-4f18-b896-a85c9c06c43c" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="f4e0d48d-3ec0-461f-a13c-119628839e92" type="ERROR:DDBB_CAIDA" >
+				<set-payload value="La Pokedex no está disponible" doc:name="Set Payload" doc:id="f0c3465f-6e5e-4b46-aed6-480c14b9d1ab" />
+			</on-error-propagate>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate1" doc:id="cf328ffb-e83f-4647-90a4-a5ff372a28ac" type="ERROR:SINTAXIS" >
+				<set-payload value="Error de sintaxis SQL" doc:name="Set Payload" doc:id="33c6254e-fe06-424c-8600-256e6184da51" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="get:\pokemon\(nombre)" doc:id="7f3664b6-0714-4116-815f-7a5d27988d10" >
+		<db:select doc:name="Select" doc:id="b4816921-f5d6-4439-8d1c-d49c41245c05" config-ref="Database_Config">
+			<error-mapping sourceType="DB:CONNECTIVITY" targetType="ERROR:DDBB_CAIDA" />
+			<error-mapping sourceType="DB:BAD_SQL_SYNTAX" targetType="ERROR:SINTAXIS" />
+			<db:sql ><![CDATA[SELECT * FROM
+pokemon.bbdd
+WHERE nombre = :nombre]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{'nombre': attributes.queryParams.nombre}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="b49bec5d-c51e-4a8d-8901-166a46ee8b32" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="f3c15c30-8b70-42f0-84fa-e47e3d5c26fc" type="ERROR:DDBB_CAIDA" >
+				<set-payload value="La Pokedex no está disponible" doc:name="Set Payload" doc:id="74cbb2c2-7cf3-43cc-a939-9f00e2659b93" />
+			</on-error-propagate>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate1" doc:id="c6083ead-7eae-4c07-85f5-253be0005a2b" type="ERROR:SINTAXIS" >
+				<set-payload value="Error de sintaxis SQL" doc:name="Set Payload" doc:id="e6a91b71-92d8-4829-bf9c-4287e37c1366" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="get:\pokemon\(tipo)" doc:id="35c8f3d1-9535-4958-b662-7538c16a7412" >
+		<db:select doc:name="Select" doc:id="da2cd5f7-70d8-40dd-b8c2-cb9b89b5928a" config-ref="Database_Config">
+			<error-mapping sourceType="DB:CONNECTIVITY" targetType="ERROR:DDBB_CAIDA" />
+			<error-mapping sourceType="DB:BAD_SQL_SYNTAX" targetType="ERROR:SINTAXIS" />
+			<db:sql ><![CDATA[SELECT * FROM
+pokemon.bbdd
+WHERE tipo1 = :tipo
+OR tipo2 = :tipo]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{'tipo': attributes.queryParams.tipo}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="9e7027d3-2555-419a-a3b1-ba0d2c9db3df" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="8428a1f5-8d22-482f-ab21-f7fa7b7e9331" type="ERROR:DDBB_CAIDA" >
+				<set-payload value="La Pokedex no está disponible" doc:name="Set Payload" doc:id="9f7a1f82-6a79-4960-bca2-9048c84128ff" />
+			</on-error-propagate>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate1" doc:id="8ce4b522-fcee-4509-a00c-a9f7a7df1a89" type="ERROR:SINTAXIS" >
+				<set-payload value="Error de sintaxis SQL" doc:name="Set Payload" doc:id="e4c6ab31-acca-40ea-bb65-788ee32939c4" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="put:\pokemon\(ID)" doc:id="b28d4be8-575f-4057-8d95-5b40a17f1299" >
+		<set-variable value="#[attributes.queryParams.nombre]" doc:name="nombre" doc:id="47791348-0320-4b51-a989-a22d6799cd8d" variableName="nombre"/>
+		<db:update doc:name="Update" doc:id="8c704f89-6d0d-4740-b8d0-e885580305ff" config-ref="Database_Config" >
+			<error-mapping sourceType="DB:CONNECTIVITY" targetType="ERROR:DDBB_CAIDA" />
+			<error-mapping sourceType="DB:BAD_SQL_SYNTAX" targetType="ERROR:SINTAXIS" />
+			<db:sql ><![CDATA[UPDATE pokemon.bbdd
+SET nombre = :nombre, tipo1 = :tipo1, tipo2 = :tipo2
+WHERE ID = :ID;]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	"ID" : attributes.uriParams.ID,
+	"nombre": attributes.queryParams.nombre,
+	"tipo1": attributes.queryParams.tipo1,
+	"tipo2": attributes.queryParams.tipo2
+}]]]></db:input-parameters>
+		</db:update>
+		<ee:transform doc:name="Transform Message" doc:id="92ea9973-b827-4dee-be29-9dbb09378ee5" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+"El pokemon " ++ vars.nombre ++ " ha sido actualizado correctamente" ]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="d27db594-8e8a-4530-8386-88a32c0171b6" type="ERROR:DDBB_CAIDA" >
+				<set-payload value="La Pokedex no está disponible" doc:name="Set Payload" doc:id="5233c395-89de-40ce-9bfc-ac546dab2dc7" />
+			</on-error-propagate>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate1" doc:id="4d6209e0-44ea-46f5-9ade-9b41b5f7a283" type="ERROR:SINTAXIS" >
+				<set-payload value="Error de sintaxis SQL" doc:name="Set Payload" doc:id="a2a499c2-d172-4388-b13c-5e97fb6a150f" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="post:\pokemon" doc:id="7273341e-8a6f-480f-b240-fa8b5ddc1dfa" >
+		<set-variable value="#[attributes.queryParams.nombre]" doc:name="nombre" doc:id="9ee36506-78ac-4c7c-8cb6-0f8894d6e486" variableName="nombre" />
+		<db:insert doc:name="Insert" doc:id="8a5f022c-eee2-411c-9ab0-9e0f2ee84da7" config-ref="Database_Config" >
+			<error-mapping sourceType="DB:CONNECTIVITY" targetType="ERROR:DDBB_CAIDA" />
+			<error-mapping sourceType="DB:BAD_SQL_SYNTAX" targetType="ERROR:SINTAXIS" />
+			<db:sql ><![CDATA[INSERT INTO pokemon.bbdd(nombre, tipo1, tipo2, gen)
+VALUES  (:nombre, :tipo1, :tipo2, :gen)]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	"nombre": attributes.queryParams.nombre,
+	"tipo1": attributes.queryParams.tipo1,
+	"tipo2": attributes.queryParams.tipo2,
+	"gen": attributes.queryParams.gen
+}]]]></db:input-parameters>
+		</db:insert>
+		<ee:transform doc:name="Transform Message" doc:id="61d9a5eb-d090-4d40-817c-c1613f6cfd2e" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+"El pokemon " ++ vars.nombre ++ " ha sido añadido correctamente" ]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="5768ee69-39c0-4d1f-87a6-8789581d3f77" type="ERROR:DDBB_CAIDA" >
+				<set-payload value="La Pokedex no está disponible" doc:name="Set Payload" doc:id="4ff4f173-4975-4fe8-9bce-3f75127445be" />
+			</on-error-propagate>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate1" doc:id="5e131730-b91f-440a-aacb-e3971ee3ac6f" type="ERROR:SINTAXIS" >
+				<set-payload value="Error de sintaxis SQL" doc:name="Set Payload" doc:id="a21ba35c-1858-4daa-ab48-517360365f86" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="patch:\pokemon\(ID)\(tipo2)" doc:id="538b0b5c-cc53-4193-ba75-ede5fcea4c33" >
+		<set-variable value="#[attributes.queryParams.tipo2]" doc:name="tipo2" doc:id="1dd4c5c0-92ea-4b2b-9d54-6246e945bd84" variableName="tipo2" />
+		<set-variable value="#[output application/java&#10;---&#10;attributes.uriParams.ID as Number]" doc:name="ID" doc:id="663635ea-c64f-46d3-b298-24e2172a93bd" variableName="ID" />
+		<db:select doc:name="Select nombre" doc:id="0bccf9ed-d9ac-4af4-bff3-7fa275887a46" config-ref="Database_Config">
+			<error-mapping sourceType="DB:CONNECTIVITY" targetType="ERROR:DDBB_CAIDA" />
+			<error-mapping sourceType="DB:BAD_SQL_SYNTAX" targetType="ERROR:SINTAXIS" />
+			<db:sql><![CDATA[SELECT * 
+FROM pokemon.bbdd 
+WHERE ID = :ID]]></db:sql>
+			<db:input-parameters><![CDATA[#[{'ID' : vars.ID}]]]></db:input-parameters>
+		</db:select>
+		<set-variable value="#[payload.nombre[0]]" doc:name="nombre" doc:id="7ff6321e-0c5e-41ac-b9c5-2e0cad3103af" variableName="nombre" />
+		<db:update doc:name="Update" doc:id="0d5c89de-7c44-4320-abd1-c71b26d0f3e9" config-ref="Database_Config">
+			<error-mapping sourceType="DB:CONNECTIVITY" targetType="ERROR:DDBB_CAIDA" />
+			<error-mapping sourceType="DB:BAD_SQL_SYNTAX" targetType="ERROR:SINTAXIS" />
+			<db:sql ><![CDATA[UPDATE pokemon.bbdd
+SET tipo2 = :tipo2
+WHERE ID = :ID]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	"ID": vars.ID,
+	"tipo2": vars.tipo2
+}]]]></db:input-parameters>
+		</db:update>
+		<ee:transform doc:name="Transform Message" doc:id="c6d6313c-3007-4151-a5b3-89147107f41f" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+"El tipo secundario de " ++ vars.nombre ++ " es ahora " ++ vars.tipo2]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="95d46e8d-8fb5-4283-930d-fdf59eddd33d" type="ERROR:DDBB_CAIDA" >
+				<set-payload value="La Pokedex no está disponible" doc:name="Set Payload" doc:id="4e12b8b5-d7cf-4c37-9ddf-f104dee7c070" />
+			</on-error-propagate>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate1" doc:id="c7f02530-574c-4b01-b25a-0ea6d376f566" type="ERROR:SINTAXIS" >
+				<set-payload value="Error de sintaxis SQL" doc:name="Set Payload" doc:id="96c86602-a298-493f-9a85-6f235728d639" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="patch:\pokemon\(ID)\(tipo1)" doc:id="595d49eb-cda8-420c-9b4e-3e1f12c475e4" >
+		<set-variable value="#[attributes.queryParams.tipo1]" doc:name="tipo1" doc:id="4092786b-7802-4234-bc99-efb4ac33f6c9" variableName="tipo1" />
+		<set-variable value="#[output application/java&#10;---&#10;attributes.uriParams.ID as Number]" doc:name="ID" doc:id="3e2471a0-03d7-4a36-86ab-34fec0dd0af9" variableName="ID" />
+		<db:select doc:name="Select nombre" doc:id="2f0b6194-caed-43ee-84cc-b64de6295051" config-ref="Database_Config">
+			<error-mapping sourceType="DB:CONNECTIVITY" targetType="ERROR:DDBB_CAIDA" />
+			<error-mapping sourceType="DB:BAD_SQL_SYNTAX" targetType="ERROR:SINTAXIS" />
+			<db:sql><![CDATA[SELECT * 
+FROM pokemon.bbdd 
+WHERE ID = :ID]]></db:sql>
+			<db:input-parameters><![CDATA[#[{'ID' : vars.ID}]]]></db:input-parameters>
+		</db:select>
+		<set-variable value="#[payload.nombre[0]]" doc:name="nombre" doc:id="3bb079f4-0aff-4c9e-90b7-f7b9a9eb2c02" variableName="nombre" />
+		<db:update doc:name="Update" doc:id="26c1af50-5d79-492f-82ad-2388b2a1d625" config-ref="Database_Config">
+			<error-mapping sourceType="DB:CONNECTIVITY" targetType="ERROR:DDBB_CAIDA" />
+			<error-mapping sourceType="DB:BAD_SQL_SYNTAX" targetType="ERROR:SINTAXIS" />
+			<db:sql ><![CDATA[UPDATE pokemon.bbdd
+SET tipo1 = :tipo1
+WHERE ID = :ID]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	"ID": vars.ID,
+	"tipo1": vars.tipo1
+}]]]></db:input-parameters>
+		</db:update>
+		<ee:transform doc:name="Transform Message" doc:id="61e60009-2273-49be-8fc0-bffbf5666b41" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+"El tipo principal de " ++ vars.nombre ++ " es ahora " ++ vars.tipo1]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="245f8e57-3aa9-4b00-8f8e-feedcd6e363f" type="ERROR:DDBB_CAIDA" >
+				<set-payload value="La Pokedex no está disponible" doc:name="Set Payload" doc:id="968f866c-ce67-471c-9507-b59d8d8e5d62" />
+			</on-error-propagate>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate1" doc:id="bf4e536a-feb1-4a87-bb9c-3c1509505b21" type="ERROR:SINTAXIS" >
+				<set-payload value="Error de sintaxis SQL" doc:name="Set Payload" doc:id="4f234335-9e44-4386-99fb-c315c3244ac5" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="patch:\pokemon\(ID)\(nombre)" doc:id="43dc3860-6b68-433e-b7d8-1d2cfedc8052" >
+		<set-variable value="#[attributes.queryParams.nombre]" doc:name="nuevo" doc:id="a0ef1265-a249-495b-9740-ac5a809e4190" variableName="nuevo" />
+		<set-variable value="#[output application/java&#10;---&#10;attributes.uriParams.ID as Number]" doc:name="ID" doc:id="b04c8f75-ba5d-42ba-bdbf-5e47773f46f6" variableName="ID" />
+		<db:select doc:name="Select nombre" doc:id="2107a389-4046-4c0f-a213-384f8e1ad8f9" config-ref="Database_Config">
+			<error-mapping sourceType="DB:CONNECTIVITY" targetType="ERROR:DDBB_CAIDA" />
+			<error-mapping sourceType="DB:BAD_SQL_SYNTAX" targetType="ERROR:SINTAXIS" />
+			<db:sql><![CDATA[SELECT nombre 
+FROM pokemon.bbdd 
+WHERE ID = :ID]]></db:sql>
+			<db:input-parameters><![CDATA[#[{'ID' : vars.ID}]]]></db:input-parameters>
+		</db:select>
+		<set-variable value="#[payload.nombre[0]]" doc:name="viejo" doc:id="89ee9164-893a-493c-81ad-a91948bb064c" variableName="viejo" />
+		<db:update doc:name="Update" doc:id="42a10a04-9936-4490-bc24-ef71c8eac734" config-ref="Database_Config">
+			<error-mapping sourceType="DB:CONNECTIVITY" targetType="ERROR:DDBB_CAIDA" />
+			<error-mapping sourceType="DB:BAD_SQL_SYNTAX" targetType="ERROR:SINTAXIS" />
+			<db:sql ><![CDATA[UPDATE pokemon.bbdd
+SET nombre = :nombre
+WHERE ID = :ID]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	"ID": vars.ID,
+	"nombre": vars.nuevo
+}]]]></db:input-parameters>
+		</db:update>
+		<ee:transform doc:name="Transform Message" doc:id="d7f74793-ba68-4ec1-9429-995babb902f9" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+"Ahora " ++ vars.viejo  ++ " pasará a llamarse " ++ vars.nuevo]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="14ab3e82-335a-41b8-8e5d-5120255a613c" type="ERROR:DDBB_CAIDA" >
+				<set-payload value="La Pokedex no está disponible" doc:name="Set Payload" doc:id="f1b812f7-a771-4daf-9542-594342bab4c3" />
+			</on-error-propagate>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate1" doc:id="8fc16bf4-7ae2-4414-9273-b8bc8eac431c" type="ERROR:SINTAXIS" >
+				<set-payload value="Error de sintaxis SQL" doc:name="Set Payload" doc:id="63cacd4b-1fc0-45de-bdb0-46289753a29f" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="patch:\pokemon\(ID)\(generacion)" doc:id="5d82e36e-2cda-43fc-b685-a9569bc20fae" >
+		<set-variable value="#[attributes.queryParams.gen]" doc:name="gen" doc:id="af580cb1-a5ae-453b-b4f7-4c2d865964c0" variableName="gen" />
+		<set-variable value="#[output application/java&#10;---&#10;attributes.uriParams.ID as Number]" doc:name="ID" doc:id="deee07f2-314a-4212-a396-ca099ec7d04a" variableName="ID" />
+		<db:select doc:name="Select nombre" doc:id="8a63d3ca-889f-4f4e-802e-7804ed1ae585" config-ref="Database_Config">
+			<error-mapping sourceType="DB:CONNECTIVITY" targetType="ERROR:DDBB_CAIDA" />
+			<error-mapping sourceType="DB:BAD_SQL_SYNTAX" targetType="ERROR:SINTAXIS" />
+			<db:sql><![CDATA[SELECT nombre 
+FROM pokemon.bbdd 
+WHERE ID = :ID]]></db:sql>
+			<db:input-parameters><![CDATA[#[{'ID' : vars.ID}]]]></db:input-parameters>
+		</db:select>
+		<set-variable value="#[payload.nombre[0]]" doc:name="nombre" doc:id="b774eb62-9c45-47f5-9130-8b72fe555656" variableName="nombre" />
+		<db:update doc:name="Update" doc:id="5f517834-f957-40be-9b63-74f6365716c8" config-ref="Database_Config">
+			<error-mapping sourceType="DB:CONNECTIVITY" targetType="ERROR:DDBB_CAIDA" />
+			<error-mapping sourceType="DB:BAD_SQL_SYNTAX" targetType="ERROR:SINTAXIS" />
+			<db:sql ><![CDATA[UPDATE pokemon.bbdd
+SET gen = :gen
+WHERE ID = :ID]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	"ID": vars.ID,
+	"gen": vars.gen
+}]]]></db:input-parameters>
+		</db:update>
+		<ee:transform doc:name="Transform Message" doc:id="bbede73c-260c-450c-91fc-51a21bedb7cb" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+"Ahora " ++ vars.nombre  ++ " pasará a considerarse un pokemon de " ++ vars.gen ++ "ª generacion"]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="f0b3202a-0585-4c26-b38c-8a9a7a0d6098" type="ERROR:DDBB_CAIDA" >
+				<set-payload value="La Pokedex no está disponible" doc:name="Set Payload" doc:id="0e185c2c-eece-4c00-b5d3-4e44707ad215" />
+			</on-error-propagate>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate1" doc:id="7a99196d-2f71-4037-a422-e4e9e35e3192" type="ERROR:SINTAXIS" >
+				<set-payload value="Error de sintaxis SQL" doc:name="Set Payload" doc:id="eca1524b-e4ff-4773-925b-e9e64e14dc4b" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="delete:\pokemon\(ID)" doc:id="4996c7f7-ae00-4318-b32b-b5ca7ab6b04e" >
+		<set-variable value="#[output application/java&#10;---&#10;attributes.uriParams.ID as Number]" doc:name="ID" doc:id="e1077334-5bf5-407f-ac3e-a2d833e78200" variableName="ID" />
+		<db:select doc:name="Select nombre" doc:id="1f732100-3614-4d35-bb86-f9c66b6ee59d" config-ref="Database_Config">
+			<error-mapping sourceType="DB:CONNECTIVITY" targetType="ERROR:DDBB_CAIDA" />
+			<error-mapping sourceType="DB:BAD_SQL_SYNTAX" targetType="ERROR:SINTAXIS" />
+			<db:sql><![CDATA[SELECT nombre 
+FROM pokemon.bbdd 
+WHERE ID = :ID]]></db:sql>
+			<db:input-parameters><![CDATA[#[{'ID' : vars.ID}]]]></db:input-parameters>
+		</db:select>
+		<set-variable value="#[payload.nombre[0]]" doc:name="nombre" doc:id="aacb4052-ac80-4274-b0d0-550230893c87" variableName="nombre" />
+		<db:delete doc:name="Delete" doc:id="d98e078f-c618-471a-9558-099cc8104038" config-ref="Database_Config">
+			<error-mapping sourceType="DB:CONNECTIVITY" targetType="ERROR:DDBB_CAIDA" />
+			<error-mapping sourceType="DB:BAD_SQL_SYNTAX" targetType="ERROR:SINTAXIS" />
+			<db:sql ><![CDATA[DELETE FROM pokemon.bbdd
+WHERE ID = :ID]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{'ID' : vars.ID}]]]></db:input-parameters>
+		</db:delete>
+		<ee:transform doc:name="Transform Message" doc:id="6867bdcf-5603-4030-8182-4d21f581b1cb" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+"El pokemon " ++ vars.nombre ++ "ha sido borrado"]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="c7bacb95-d260-4d59-8257-2ad7ac5f1d66" type="ERROR:DDBB_CAIDA" >
+				<set-payload value="La Pokedex no está disponible" doc:name="Set Payload" doc:id="04f316a7-6522-45c9-9457-77f699130e63" />
+			</on-error-propagate>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate1" doc:id="bccd4e4b-e505-486a-9482-74c57f0b45bb" type="ERROR:SINTAXIS" >
+				<set-payload value="Error de sintaxis SQL" doc:name="Set Payload" doc:id="f379d779-91a1-44f5-b779-3d55190feafc" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="patch:\pokemon\(ID)\entrenar" doc:id="08cbc2fb-1200-4e70-905e-6f363e7cb441" >
+		<set-variable value="#[output application/java&#10;---&#10;attributes.uriParams.ID as Number]" doc:name="ID" doc:id="dd22dc0c-3622-41cd-913f-a83b36e892b5" variableName="ID"/>
+		<set-variable value="#[output application/java&#10;---&#10;attributes.queryParams.xp as Number]" doc:name="xp" doc:id="5469740a-3f37-4e4e-b191-fb85006eeb3c" variableName="xp"/>
+		<db:select doc:name="Select xp previa" doc:id="4cc0b947-5d90-457f-a7ad-6f8bb498ad34" config-ref="Database_Config">
+			<error-mapping sourceType="DB:CONNECTIVITY" targetType="ERROR:DDBB_CAIDA" />
+			<error-mapping sourceType="DB:BAD_SQL_SYNTAX" targetType="ERROR:SINTAXIS" />
+			<db:sql ><![CDATA[SELECT *
+FROM pokemon.bbdd
+WHERE ID = :ID
+]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{"ID" : attributes.uriParams.ID}]]]></db:input-parameters>
+		</db:select>
+		<set-variable value="#[payload.nombre]" doc:name="nombre" doc:id="3db89e5a-3057-4abe-bb24-c4cbc658dbfb" variableName="nombre" />
+		<ee:transform doc:name="Sumar xp" doc:id="4fda02d3-7001-49bc-869e-b0922f25fe80" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+var xptotal = sum(payload.xp + vars.xp)
+---
+xptotal]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<set-variable value="#[payload]" doc:name="xptotal" doc:id="30856797-b2ad-4913-bbdd-39af6a6a27c2" variableName="xptotal"/>
+		<ee:transform doc:name="Transform xp a nivel" doc:id="eede70e7-6d9e-4e81-b62c-7259ce26f468" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+var redondeo = floor(payload / 100 + 1)
+---
+redondeo]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<set-variable value="#[payload]" doc:name="nivel" doc:id="5c979a21-eb27-4f18-b39b-9acc44b7ab5e" variableName="nivel"/>
+		<db:update doc:name="Update" doc:id="925aee1a-6c49-469e-9f57-4abaa76e80ee" config-ref="Database_Config">
+			<error-mapping sourceType="DB:CONNECTIVITY" targetType="ERROR:DDBB_CAIDA" />
+			<error-mapping sourceType="DB:BAD_SQL_SYNTAX" targetType="ERROR:SINTAXIS" />
+			<db:sql ><![CDATA[UPDATE pokemon.bbdd
+SET xp = :xptotal, level = :nivel
+WHERE ID = :ID]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	"ID":vars.ID,
+	"xptotal":vars.xptotal,
+	"nivel":vars.nivel
+}]]]></db:input-parameters>
+		</db:update>
+		<ee:transform doc:name="Transform Message" doc:id="4c57861f-94cc-4208-b67e-b77124d1e9e2" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+"El pokemon " ++ vars.nombre[0] ++ " ha ganado " ++ vars.xp ++ " xp y es ahora nivel " ++ vars.nivel]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="a96ee861-68d9-4fea-bcaf-2af728b8cc33" type="ERROR:DDBB_CAIDA" >
+				<set-payload value="La Pokedex no está disponible" doc:name="Set Payload" doc:id="4854ac42-80ba-494c-9291-f01482be17fb" />
+			</on-error-propagate>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate1" doc:id="45ece3ab-9e0e-43fb-8471-0451351fecdc" type="ERROR:SINTAXIS" >
+				<set-payload value="Error de sintaxis SQL" doc:name="Set Payload" doc:id="6ba43c2e-39bf-4315-b4c1-bae7a510509d" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="patch:\pokemon\(ID)\aprender" doc:id="286b2ea0-64de-4f0d-bc39-1577c243fc44" >
+		<set-variable value="#[output application/java&#10;---&#10;attributes.uriParams.ID as Number]" doc:name="ID" doc:id="ed65c017-75a2-48a3-a440-4528dc2e068f" variableName="ID" />
+		<set-variable value="#[output application/java&#10;---&#10;attributes.queryParams.mov]" doc:name="mov" doc:id="5c2a697d-deb0-4eb3-9e48-cadf3e77ec78" variableName="mov" />
+		<db:select doc:name="movs" doc:id="3ae06d96-5825-4e0e-ac65-ea794c590044" config-ref="Database_Config" targetValue="#[payload as Object]">
+			<error-mapping sourceType="DB:CONNECTIVITY" targetType="ERROR:DDBB_CAIDA" />
+			<error-mapping sourceType="DB:BAD_SQL_SYNTAX" targetType="ERROR:SINTAXIS" />
+			<db:sql><![CDATA[SELECT nombre, mov1, mov2, mov3, mov4
+FROM pokemon.bbdd 
+WHERE ID = :ID]]></db:sql>
+			<db:input-parameters><![CDATA[#[{'ID': vars.ID}]]]></db:input-parameters>
+		</db:select>
+		<set-variable value="#[payload.nombre]" doc:name="nombre" doc:id="4cab694c-8da2-4f1c-9c84-468abe0e80db" variableName="nombre" />
+		<set-variable value="#[payload.mov1]" doc:name="mov1" doc:id="cffe9e02-b810-499c-93c1-2c6ea550f796" variableName="mov1" />
+		<set-variable value="#[payload.mov2]" doc:name="mov2" doc:id="eec7ad54-bc6a-49a1-8909-84664b025b80" variableName="mov2" />
+		<set-variable value="#[payload.mov3]" doc:name="mov3" doc:id="29cbae3f-a526-406d-95b0-9075676b6018" variableName="mov3" />
+		<set-variable value="#[payload.mov4]" doc:name="mov4" doc:id="18b3a9b3-229e-476d-8ec0-817ac9e72f0a" variableName="mov4" />
+		<set-payload value="El pokemon ya conoce el movimiento" doc:name="Set Payload" doc:id="9ca25739-1df2-48f8-a9b1-1971986327b6" />
+		<scatter-gather doc:name="Scatter-Gather" doc:id="89ce35c6-3c0e-4294-91a8-8987f7a4f431" >
+			<route >
+				<validation:is-false doc:name="mov1 == mov" doc:id="ba711a12-4b3a-4efc-961b-958fd2f6ba65" expression="#[vars.mov1 contains vars.mov]" message='El pokemon ya conoce el movimiento' config-ref="Validation_Config">
+					<error-mapping targetType="ERROR:MOVIMIENTO" />
+				</validation:is-false>
+			</route>
+			<route >
+				<validation:is-false doc:name="mov2 == mov" doc:id="788fbf26-8456-4988-8741-05b544ed33a1" message='El pokemon ya conoce el movimiento' expression="#[vars.mov2 contains vars.mov]">
+					<error-mapping targetType="ERROR:MOVIMIENTO" />
+				</validation:is-false>
+			</route>
+			<route >
+				<validation:is-false doc:name="mov3 == mov" doc:id="36ca9262-daa6-48b5-9474-3496761f22c2" message='El pokemon ya conoce el movimiento' expression="#[vars.mov3 contains vars.mov]">
+					<error-mapping targetType="ERROR:MOVIMIENTO" />
+				</validation:is-false>
+			</route>
+			<route >
+				<validation:is-false doc:name="mov4 == mov" doc:id="40519e85-5c10-4429-9c8f-a11d68003399" message='El pokemon ya conoce el movimiento' expression="#[vars.mov4 contains vars.mov]">
+					<error-mapping targetType="ERROR:MOVIMIENTO" />
+				</validation:is-false>
+			</route>
+		</scatter-gather>
+		<choice doc:name="Choice" doc:id="f9d0b8d4-872b-4349-8f7e-4e1fdb3f377c" tracking:enable-default-events="true">
+			<when expression="#[isEmpty(vars.mov1[0])]" >
+				<db:update doc:name="Update" doc:id="cabb71b7-2723-4066-9de6-0ebd85dd82ec" config-ref="Database_Config" >
+					<error-mapping sourceType="DB:CONNECTIVITY" targetType="ERROR:DDBB_CAIDA" />
+					<error-mapping sourceType="DB:BAD_SQL_SYNTAX" targetType="ERROR:SINTAXIS" />
+					<db:sql ><![CDATA[UPDATE pokemon.bbdd
+SET mov1 = :mov
+WHERE ID = :ID]]></db:sql>
+					<db:input-parameters ><![CDATA[#[{
+	"ID":vars.ID,
+	"mov":vars.mov,
+}]]]></db:input-parameters>
+				</db:update>
+				<ee:transform doc:name="Transform Message" doc:id="7ae73651-6097-406a-96d4-f27f7d5b5b7c" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+"El pokemon " ++ vars.nombre[0] ++ " ha aprendido el movimiento " ++ vars.mov]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise >
+				<choice doc:name="Choice" doc:id="c8822faf-4407-442f-a6bc-3e1f526182e1" >
+					<when expression="#[isEmpty(vars.mov2[0])]">
+						<db:update doc:name="Update" doc:id="041c5dd1-b424-4fc6-bd69-b0122d7e13ff" config-ref="Database_Config" >
+							<error-mapping sourceType="DB:CONNECTIVITY" targetType="ERROR:DDBB_CAIDA" />
+							<error-mapping sourceType="DB:BAD_SQL_SYNTAX" targetType="ERROR:SINTAXIS" />
+							<db:sql ><![CDATA[UPDATE pokemon.bbdd
+SET mov2 = :mov
+WHERE ID = :ID]]></db:sql>
+							<db:input-parameters ><![CDATA[#[{
+	"ID":vars.ID,
+	"mov":vars.mov,
+}]]]></db:input-parameters>
+						</db:update>
+						<ee:transform doc:name="Transform Message" doc:id="96fb3630-f299-4a3c-a72c-d5be48279b75" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+"El pokemon " ++ vars.nombre[0] ++ " ha aprendido el movimiento " ++ vars.mov]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</when>
+					<otherwise >
+						<choice doc:name="Choice" doc:id="3f309965-033a-4965-ab3a-03f2ddf75f8b" >
+							<when expression="#[isEmpty(vars.mov3[0])]" >
+								<db:update doc:name="Update" doc:id="1fe9cb96-935e-4ed2-a0d6-444f01df473d" config-ref="Database_Config" >
+									<error-mapping sourceType="DB:CONNECTIVITY" targetType="ERROR:DDBB_CAIDA" />
+									<error-mapping sourceType="DB:BAD_SQL_SYNTAX" targetType="ERROR:SINTAXIS" />
+									<db:sql ><![CDATA[UPDATE pokemon.bbdd
+SET mov3 = :mov
+WHERE ID = :ID]]></db:sql>
+									<db:input-parameters ><![CDATA[#[{
+	"ID":vars.ID,
+	"mov":vars.mov,
+}]]]></db:input-parameters>
+								</db:update>
+								<ee:transform doc:name="Transform Message" doc:id="5d5479af-c552-4e1a-903b-9bcbbf0ab285" >
+									<ee:message >
+										<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+"El pokemon " ++ vars.nombre[0] ++ " ha aprendido el movimiento " ++ vars.mov]]></ee:set-payload>
+									</ee:message>
+								</ee:transform>
+							</when>
+							<otherwise >
+								<choice doc:name="Choice" doc:id="3dd3e2e7-987d-44f1-afca-20a833452aef" >
+									<when expression="#[isEmpty(vars.mov4[0])]" >
+										<db:update doc:name="Update" doc:id="ce7ce87f-f509-4f99-9392-c2284b0b450e" config-ref="Database_Config" >
+											<error-mapping sourceType="DB:CONNECTIVITY" targetType="ERROR:DDBB_CAIDA" />
+											<error-mapping sourceType="DB:BAD_SQL_SYNTAX" targetType="ERROR:SINTAXIS" />
+											<db:sql ><![CDATA[UPDATE pokemon.bbdd
+SET mov4 = :mov
+WHERE ID = :ID]]></db:sql>
+											<db:input-parameters ><![CDATA[#[{
+	"ID":vars.ID,
+	"mov":vars.mov,
+}]]]></db:input-parameters>
+										</db:update>
+										<ee:transform doc:name="Transform Message" doc:id="61c65524-7e73-4f6c-b5c4-bce62da096d2" >
+											<ee:message >
+												<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+"El pokemon " ++ vars.nombre[0] ++ " ha aprendido el movimiento " ++ vars.mov]]></ee:set-payload>
+											</ee:message>
+										</ee:transform>
+									</when>
+									<otherwise>
+										<set-payload value='#[payload]' doc:name="Set Payload" doc:id="5af1c546-cea4-4763-bde2-d44bef52969e" />
+										<ee:transform doc:name="Transform Message" doc:id="fafbe22f-3e63-4a43-930e-5b765193d9c4" >
+											<ee:message >
+												<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+"El pokemon no puede aprender mas de 4 movimientos, debe olvidar uno para aprender " ++ vars.mov ++ ": \n 1- " ++ vars.mov1[0] ++ " \n 2- " ++ vars.mov2[0] ++ " \n 3- " ++ vars.mov3[0] ++ " \n 4- " ++ vars.mov4[0]]]></ee:set-payload>
+											</ee:message>
+										</ee:transform>
+									</otherwise>
+								</choice>
+							</otherwise>
+						</choice>
+					</otherwise>
+				</choice>
+			</otherwise>
+		</choice>
+		<ee:transform doc:name="Transform Message" doc:id="8ed755ff-3b78-4520-b493-09ce1c5d5f1b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="a975ef5a-7731-454f-974c-7f4eba8241bc" type="ERROR:DDBB_CAIDA" >
+				<set-payload value="La Pokedex no está disponible" doc:name="Set Payload" doc:id="7e167376-1cca-45ac-9a15-29619724eb74" />
+			</on-error-propagate>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate1" doc:id="e19c08db-1dbb-4e7e-a6fd-1e344ee162fd" type="ERROR:SINTAXIS" >
+				<set-payload value="Error de sintaxis SQL" doc:name="Set Payload" doc:id="b8033fa1-b313-402f-a249-36f3fade0865" />
+			</on-error-propagate>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate2" doc:id="71181402-a1fb-4a09-bcf6-a8552b7a85a7" type="ERROR:MOVIMIENTO" >
+				<set-payload value='"El pokemon ya conoce el movimiento"' doc:name="Set Payload" doc:id="de2af790-761b-4563-a583-392d0323c0a4" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="patch:\pokemon\(ID)\olvidar1" doc:id="2481c248-1a03-4037-9188-8f43384b897c" >
+		<set-variable value="#[output application/java&#10;---&#10;attributes.uriParams.ID as Number]" doc:name="ID" doc:id="6e4e51f3-3b28-41e4-b6b9-e870ec0a3520" variableName="ID" />
+		<db:select doc:name="Select nombre" doc:id="50e384c0-b33e-48cf-aa8e-50e96bd45524" config-ref="Database_Config">
+			<error-mapping sourceType="DB:CONNECTIVITY" targetType="ERROR:DDBB_CAIDA" />
+			<error-mapping sourceType="DB:BAD_SQL_SYNTAX" targetType="ERROR:SINTAXIS" />
+			<db:sql><![CDATA[SELECT nombre, mov1
+FROM pokemon.bbdd 
+WHERE ID = :ID]]></db:sql>
+			<db:input-parameters><![CDATA[#[{"ID": vars.ID}]]]></db:input-parameters>
+		</db:select>
+		<set-variable value="#[payload.nombre]" doc:name="nombre" doc:id="8ff890be-d97e-4873-ac28-a3547c165a0d" variableName="nombre" />
+		<set-variable value="#[payload.mov1]" doc:name="mov" doc:id="a80c7b59-6782-4de7-b0b2-78235f1128dc" variableName="mov1" />
+		<db:update doc:name="Update" doc:id="3dd94bce-2687-4e9b-b50c-41b6b8975a1c" config-ref="Database_Config" >
+			<error-mapping sourceType="DB:CONNECTIVITY" targetType="ERROR:DDBB_CAIDA" />
+			<error-mapping sourceType="DB:BAD_SQL_SYNTAX" targetType="ERROR:SINTAXIS" />
+			<db:sql ><![CDATA[UPDATE pokemon.bbdd
+SET mov1 = '' WHERE ID = :ID]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	"ID": vars.ID
+}]]]></db:input-parameters>
+		</db:update>
+		<ee:transform doc:name="Transform Message" doc:id="a1375bae-636f-43eb-b85d-09a522015780" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+"El pokemon " ++ vars.nombre[0] ++ " ha olvidado el movimiento " ++ vars.mov1[0]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="aa30c920-0bc3-4b60-aef9-c13fbd728150" type="ERROR:DDBB_CAIDA" >
+				<set-payload value="La Pokedex no está disponible" doc:name="Set Payload" doc:id="656da731-1067-4968-99ed-ef5097e2e94f" />
+			</on-error-propagate>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate1" doc:id="7b7091cc-4355-49c4-a03c-5b0c21b88d03" type="ERROR:SINTAXIS" >
+				<set-payload value="Error de sintaxis SQL" doc:name="Set Payload" doc:id="1898214e-61f9-4a79-ae92-a2a030fdcad1" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="patch:\pokemon\(ID)\olvidar2" doc:id="1fd9c6b1-cf7f-43e5-8ca5-41e1602f9991" >
+		<set-variable value="#[output application/java&#10;---&#10;attributes.uriParams.ID as Number]" doc:name="ID" doc:id="ef9182a4-b506-4c8a-827a-5b6be595431b" variableName="ID" />
+		<db:select doc:name="Select nombre" doc:id="7d2e7f3c-4325-4ac9-b61b-945d740b4a0e" config-ref="Database_Config">
+			<error-mapping sourceType="DB:CONNECTIVITY" targetType="ERROR:DDBB_CAIDA" />
+			<error-mapping sourceType="DB:BAD_SQL_SYNTAX" targetType="ERROR:SINTAXIS" />
+			<db:sql><![CDATA[SELECT nombre, mov2
+FROM pokemon.bbdd 
+WHERE ID = :ID]]></db:sql>
+			<db:input-parameters><![CDATA[#[{"ID": vars.ID}]]]></db:input-parameters>
+		</db:select>
+		<set-variable value="#[payload.nombre]" doc:name="nombre" doc:id="57528567-34b8-45d0-ae17-d8d294758ac9" variableName="nombre" />
+		<set-variable value="#[payload.mov2]" doc:name="mov" doc:id="17cf02b1-9058-4e88-aa29-6e6f683e4b13" variableName="mov2" />
+		<db:update doc:name="Update" doc:id="482c845e-17ce-4a45-8a63-e734cfe99e4d" config-ref="Database_Config">
+			<error-mapping sourceType="DB:CONNECTIVITY" targetType="ERROR:DDBB_CAIDA" />
+			<error-mapping sourceType="DB:BAD_SQL_SYNTAX" targetType="ERROR:SINTAXIS" />
+			<db:sql><![CDATA[UPDATE pokemon.bbdd
+SET mov2 = '' WHERE ID = :ID]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+	"ID": vars.ID
+}]]]></db:input-parameters>
+		</db:update>
+		<ee:transform doc:name="Transform Message" doc:id="68dea257-3fa3-4e34-8b5a-1b70d4886c5c" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+"El pokemon " ++ payload.nombre[0] ++ " ha olvidado el movimiento " ++ vars.mov2[0]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="31e9b967-0106-40e0-95b4-f42d1ef8108d" type="ERROR:DDBB_CAIDA" >
+				<set-payload value="La Pokedex no está disponible" doc:name="Set Payload" doc:id="111170e4-8109-4912-9bf1-913590f29dae" />
+			</on-error-propagate>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate1" doc:id="17766b01-e5e4-4898-b176-d44de62d7d10" type="ERROR:SINTAXIS" >
+				<set-payload value="Error de sintaxis SQL" doc:name="Set Payload" doc:id="1d98032e-7fe9-4800-8a15-7a841cbd3e44" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="patch:\pokemon\(ID)\olvidar3" doc:id="c533b226-14af-492e-b73b-2deb72f7e570" >
+		<set-variable value="#[output application/java&#10;---&#10;attributes.uriParams.ID as Number]" doc:name="ID" doc:id="b75e325b-582f-414c-b6df-91ca609f6b50" variableName="ID" />
+		<db:select doc:name="Select nombre" doc:id="26d4697d-0a82-44c9-9b0d-4542b4fa973e" config-ref="Database_Config">
+			<error-mapping sourceType="DB:CONNECTIVITY" targetType="ERROR:DDBB_CAIDA" />
+			<error-mapping sourceType="DB:BAD_SQL_SYNTAX" targetType="ERROR:SINTAXIS" />
+			<db:sql><![CDATA[SELECT nombre, mov3
+FROM pokemon.bbdd 
+WHERE ID = :ID]]></db:sql>
+			<db:input-parameters><![CDATA[#[{"ID": vars.ID}]]]></db:input-parameters>
+		</db:select>
+		<set-variable value="#[payload.nombre]" doc:name="nombre" doc:id="4880167d-102d-40cd-8585-f6f6d435a38d" variableName="nombre" />
+		<set-variable value="#[payload.mov3]" doc:name="mov" doc:id="5b321ce7-42c3-4d8c-9249-298319d04d6f" variableName="mov3" />
+		<db:update doc:name="Update" doc:id="83bec657-df6a-400b-9618-f76cd760baaf" config-ref="Database_Config" >
+			<error-mapping sourceType="DB:CONNECTIVITY" targetType="ERROR:DDBB_CAIDA" />
+			<error-mapping sourceType="DB:BAD_SQL_SYNTAX" targetType="ERROR:SINTAXIS" />
+			<db:sql ><![CDATA[UPDATE pokemon.bbdd
+SET mov3 = '' WHERE ID = :ID]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	"ID": vars.ID
+}]]]></db:input-parameters>
+		</db:update>
+		<ee:transform doc:name="Transform Message" doc:id="56dcce3d-d7de-4135-a26d-9f2f3b1f4bcf" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+"El pokemon " ++ vars.nombre[0] ++ " ha olvidado el movimiento " ++ vars.mov3[0]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="394afc03-6f92-4859-951d-6b687fd3fbe8" type="ERROR:DDBB_CAIDA" >
+				<set-payload value="La Pokedex no está disponible" doc:name="Set Payload" doc:id="ad18ca5d-93ac-4d92-93e4-a4666b4c37d9" />
+			</on-error-propagate>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate1" doc:id="b34f4f3a-4b78-43a0-b8ca-91befd5639dc" type="ERROR:SINTAXIS" >
+				<set-payload value="Error de sintaxis SQL" doc:name="Set Payload" doc:id="764cd94a-327a-4aeb-a48a-f3934b92b183" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="patch:\pokemon\(ID)\olvidar4" doc:id="16528641-8400-498d-8530-b29e5d683f5f" >
+		<set-variable value="#[output application/java&#10;---&#10;attributes.uriParams.ID as Number]" doc:name="ID" doc:id="79bec72c-4427-42c9-8b2f-3b87d0aa6da3" variableName="ID" />
+		<db:select doc:name="Select nombre" doc:id="312fb3cb-e91b-49e7-958d-249fe36ffa6d" config-ref="Database_Config">
+			<error-mapping sourceType="DB:CONNECTIVITY" targetType="ERROR:DDBB_CAIDA" />
+			<error-mapping sourceType="DB:BAD_SQL_SYNTAX" targetType="ERROR:SINTAXIS" />
+			<db:sql><![CDATA[SELECT nombre, mov4
+FROM pokemon.bbdd 
+WHERE ID = :ID]]></db:sql>
+			<db:input-parameters><![CDATA[#[{"ID": vars.ID}]]]></db:input-parameters>
+		</db:select>
+		<set-variable value="#[payload.nombre]" doc:name="nombre" doc:id="4816c0bd-6c85-48d9-896b-dc7e3a8c9de7" variableName="nombre" />
+		<set-variable value="#[payload.mov4]" doc:name="mov" doc:id="1b5e32c2-3afe-4c83-bbce-d1e240f25cc7" variableName="mov4" />
+		<db:update doc:name="Update" doc:id="9470e00c-dae8-4c5f-b901-928980fe4ae2" config-ref="Database_Config" >
+			<error-mapping sourceType="DB:CONNECTIVITY" targetType="ERROR:DDBB_CAIDA" />
+			<error-mapping sourceType="DB:BAD_SQL_SYNTAX" targetType="ERROR:SINTAXIS" />
+			<db:sql ><![CDATA[UPDATE pokemon.bbdd
+SET mov4 = '' WHERE ID = :ID]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	"ID": vars.ID
+}]]]></db:input-parameters>
+		</db:update>
+		<ee:transform doc:name="Transform Message" doc:id="b5a87e27-90b0-4123-9942-ddec33a594ec" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+"El pokemon " ++ payload.nombre[0] ++ " ha olvidado el movimiento " ++ vars.mov4[0]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="351e2d1d-2144-4fb0-8003-69b6f7422490" type="ERROR:DDBB_CAIDA" >
+				<set-payload value="La Pokedex no está disponible" doc:name="Set Payload" doc:id="e1b800e6-dc21-453b-a820-ddbfafd0d537" />
+			</on-error-propagate>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate1" doc:id="711db739-c929-4d94-ae32-91ac909be9c8" type="ERROR:SINTAXIS" >
+				<set-payload value="Error de sintaxis SQL" doc:name="Set Payload" doc:id="415f28f7-31b6-4520-82ce-1e92879ba96f" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+</mule>
