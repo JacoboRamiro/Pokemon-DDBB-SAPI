@@ -7,7 +7,7 @@ This is the System Layer of the Pokemon DDBB, it contains the interface and impl
 - Update the "MainType" of the specified ID Pokemon "/api/pokemon/ID/tipo1?tipo1=MainType"
 - Update the "SecondaryType" of the specified ID Pokemon "/api/pokemon/ID/tipo1?tipo2=SecondaryType"
 - Update the "generation" of the specified ID Pokemon "/api/pokemon/ID/generacion?gen=generation"
-- Post the Pokemon with the specified "name", "MainType" ("SecondaryType" and "Gen" are optional) "/api/pokemon?nombre=name&tipo1=MainType&tipo2=SecondaryType&gen=generation"
+- Create (Post) the Pokemon with the specified "name", "MainType" ("SecondaryType" and "Gen" are optional) "/api/pokemon?nombre=name&tipo1=MainType&tipo2=SecondaryType&gen=generation"
 - Delete the Pokemon with the specified ID "/api/pokemon/ID"
 - Train (Patch) the specified ID Pokemon with a numeric ammount of xp "/api/pokemon/ID/entrenar?xp=xp"
 - Teach (Patch) the specified ID Pokemon the specified move "/api/pokemon/ID/aprender?mov=move"
